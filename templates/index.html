@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09111f">
+  <title>Trace — IP Address Lookup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09111f;
+      --panel: #101c2e;
+      --panel-soft: #0d1828;
+      --line: rgba(161, 184, 218, .12);
+      --muted: #8494ad;
+      --text: #edf4ff;
+      --cyan: #58e1d0;
+      --blue: #7e9eff;
+      --red: #ff8b9a;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 50% -18%, rgba(52, 112, 160, .2), transparent 48%),
+        var(--bg);
+      font-family: "DM Sans", sans-serif;
+    }
+
+    button, input { font: inherit; }
+    .shell { width: min(1060px, calc(100% - 48px)); margin: 0 auto; }
+    header {
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--text); text-decoration: none; }
+    .brand-mark {
+      width: 35px; height: 35px; display: grid; place-items: center;
+      border: 1px solid rgba(88, 225, 208, .38); border-radius: 11px;
+      color: var(--cyan); background: rgba(88, 225, 208, .08);
+    }
+    .brand-mark svg { width: 19px; height: 19px; }
+    .brand-name { font: 600 20px "Space Grotesk", sans-serif; letter-spacing: -.6px; }
+    .header-note { color: var(--muted); font-size: 12px; letter-spacing: .02em; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px rgba(88, 225, 208, .6); }
+
+    main { padding: 75px 0 72px; }
+    .intro { max-width: 650px; margin: 0 auto 34px; text-align: center; }
+    .eyebrow {
+      margin: 0 0 15px; color: var(--cyan); font: 500 11px "DM Mono", monospace;
+      letter-spacing: .16em; text-transform: uppercase;
+    }
+    h1 { margin: 0; font: 600 clamp(34px, 6vw, 54px)/1.08 "Space Grotesk", sans-serif; letter-spacing: -2px; }
+    .intro-copy { max-width: 480px; margin: 16px auto 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+
+    .search-card {
+      max-width: 690px; margin: 0 auto; padding: 8px;
+      border: 1px solid rgba(161, 184, 218, .18); border-radius: 16px;
+      background: rgba(16, 28, 46, .9); box-shadow: 0 18px 55px rgba(0, 0, 0, .22);
+    }
+    .search-form { display: flex; gap: 8px; }
+    .input-wrap { display: flex; flex: 1; min-width: 0; align-items: center; gap: 12px; padding: 0 14px; }
+    .input-wrap svg { width: 19px; height: 19px; flex: 0 0 auto; color: #7f91ac; }
+    .search-input {
+      width: 100%; min-width: 0; height: 52px; padding: 0; border: 0; outline: 0;
+      color: var(--text); background: transparent; font: 14px "DM Mono", monospace;
+    }
+    .search-input::placeholder { color: #72819a; }
+    .search-input:focus-visible { outline: none; }
+    .search-card:focus-within { border-color: rgba(88, 225, 208, .52); box-shadow: 0 0 0 3px rgba(88, 225, 208, .07), 0 18px 55px rgba(0, 0, 0, .22); }
+    .search-button {
+      min-width: 132px; height: 52px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      border: 0; border-radius: 10px; color: #08211f; background: var(--cyan);
+      font-weight: 700; font-size: 13px; cursor: pointer; transition: background .2s, transform .2s;
+    }
+    .search-button:hover { background: #7af0e1; transform: translateY(-1px); }
+    .search-button svg { width: 16px; height: 16px; }
+    .quick-examples { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 19px; color: #7889a2; font-size: 12px; }
+    .example {
+      padding: 5px 9px; border: 1px solid var(--line); border-radius: 6px; color: #a8b7cc;
+      background: rgba(255,255,255,.025); font: 11px "DM Mono", monospace; cursor: pointer;
+    }
+    .example:hover { border-color: rgba(88,225,208,.45); color: var(--cyan); }
+
+    .error {
+      max-width: 690px; margin: 20px auto 0; padding: 13px 16px;
+      border: 1px solid rgba(255, 139, 154, .25); border-radius: 10px;
+      color: #ffc0c8; background: rgba(255, 139, 154, .07); font-size: 13px;
+    }
+    .results { margin-top: 64px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 17px; }
+    .section-kicker { margin: 0 0 7px; color: var(--muted); font: 11px "DM Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+    h2 { margin: 0; font: 500 21px "Space Grotesk", sans-serif; letter-spacing: -.4px; }
+    .live-label { display: inline-flex; align-items: center; gap: 7px; font: 11px "DM Mono", monospace; }
+    .status-indicator { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; animation: status-blink 1s ease-in-out infinite; }
+    .status-up { color: #62e6a7; }
+    .status-up .status-indicator { background: #62e6a7; box-shadow: 0 0 9px rgba(98, 230, 167, .75); }
+    .status-down { color: #ff7185; }
+    .status-down .status-indicator { background: #ff7185; box-shadow: 0 0 9px rgba(255, 113, 133, .75); }
+    .status-other { color: #ffd166; }
+    .status-other .status-indicator { background: #ffd166; box-shadow: 0 0 9px rgba(255, 209, 102, .75); }
+    @keyframes status-blink { 50% { opacity: .25; } }
+
+    .overview {
+      display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 15px; background: var(--panel);
+    }
+    .ip-summary { min-height: 205px; padding: 27px 29px; display: flex; flex-direction: column; justify-content: space-between; }
+    .label { color: var(--muted); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+    .ip-value { margin-top: 10px; font: 500 clamp(20px, 3.2vw, 30px) "DM Mono", monospace; letter-spacing: -.8px; overflow-wrap: anywhere; }
+    .summary-bottom { display: flex; align-items: center; gap: 9px; margin-top: 22px; }
+    .type-badge { padding: 6px 9px; border: 1px solid rgba(88,225,208,.2); border-radius: 6px; color: var(--cyan); background: rgba(88,225,208,.07); font-size: 11px; }
+    .location-caption { color: var(--muted); font-size: 12px; }
+    .map-panel {
+      position: relative; min-height: 205px; overflow: hidden; display: grid; place-items: center;
+      border-left: 1px solid var(--line);
+      background-color: #101d30;
+      background-image: linear-gradient(rgba(135,164,205,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(135,164,205,.06) 1px, transparent 1px);
+      background-size: 26px 26px;
+    }
+    .map-panel::before {
+      content: ""; position: absolute; width: 270px; height: 150px; border: 1px solid rgba(126,158,255,.15);
+      border-radius: 44% 56% 53% 47% / 44% 43% 57% 56%;
+      background: rgba(78, 106, 156, .09); transform: rotate(-13deg);
+    }
+    .map-panel::after {
+      content: ""; position: absolute; width: 210px; height: 110px; border: 1px solid rgba(126,158,255,.12);
+      border-radius: 58% 42% 38% 62% / 45% 55% 45% 55%; transform: rotate(21deg);
+    }
+    .map-coast { position: absolute; width: 92px; height: 64px; top: 31%; right: 21%; border: 1px solid rgba(126,158,255,.17); border-radius: 56% 44% 61% 39%; transform: rotate(-35deg); }
+    .map-pin { z-index: 1; position: relative; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(88,225,208,.45); border-radius: 50%; background: rgba(88,225,208,.13); }
+    .map-pin::before { content: ""; position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+    .map-pin::after { content: ""; position: absolute; inset: -10px; border: 1px solid rgba(88,225,208,.18); border-radius: 50%; animation: pulse 2.5s ease-out infinite; }
+    .map-caption { z-index: 1; position: absolute; right: 15px; bottom: 13px; color: #91a2bc; font: 10px "DM Mono", monospace; }
+    @keyframes pulse { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+
+    .details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 13px; }
+    .detail-card { min-height: 98px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-soft); }
+    .detail-card .label { display: flex; align-items: center; gap: 8px; }
+    .detail-icon { width: 15px; height: 15px; color: #8097ba; }
+    .detail-value { margin-top: 12px; color: #e0e9f7; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+    .empty-value { color: #64758e; font-weight: 400; }
+    .privacy-note { display: flex; justify-content: center; align-items: center; gap: 7px; margin: 28px 0 0; color: #71829b; font-size: 11px; text-align: center; }
+    .privacy-note svg { width: 14px; height: 14px; flex: 0 0 auto; color: #8193ad; }
+    footer { padding: 19px 0 25px; border-top: 1px solid var(--line); color: #66768e; font-size: 11px; text-align: center; }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 32px, 520px); }
+      header { height: 69px; }
+      .header-note { font-size: 10px; }
+      main { padding: 54px 0 55px; }
+      .intro { margin-bottom: 27px; }
+      h1 { letter-spacing: -1.4px; }
+      .intro-copy { font-size: 14px; }
+      .search-card { padding: 6px; }
+      .search-form { gap: 3px; }
+      .input-wrap { gap: 8px; padding: 0 8px; }
+      .search-input { font-size: 12px; }
+      .search-button { min-width: 48px; padding: 0 12px; font-size: 0; }
+      .search-button svg { width: 19px; height: 19px; }
+      .quick-examples { flex-wrap: wrap; gap: 7px; }
+      .quick-examples > span { width: 100%; text-align: center; }
+      .results { margin-top: 48px; }
+      .overview { grid-template-columns: 1fr; }
+      .ip-summary { min-height: 170px; padding: 23px; }
+      .map-panel { min-height: 160px; border-top: 1px solid var(--line); border-left: 0; }
+      .details-grid { grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 9px; }
+      .detail-card { min-height: 91px; padding: 14px; }
+      .privacy-note { line-height: 1.6; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/" aria-label="Trace home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.8 9h16.4M3.8 15h16.4M12 3.5c2.1 2.3 3.2 5.1 3.2 8.5s-1.1 6.2-3.2 8.5c-2.1-2.3-3.2-5.1-3.2-8.5S9.9 5.8 12 3.5Z"/></svg>
+        </span>
+        <span class="brand-name">trace world<span style="color:var(--cyan)">.</span></span>
+      </a>
+      <div class="header-note"><span class="status-dot"></span>IP intelligence, made simple</div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">Explore the internet</p>
+        <h1>Every IP has a history.</h1>
+        <p class="intro-copy">Look up an IP address or domain to discover where it connects, who hosts it, and more.</p>
+      </section>
+
+      <section class="search-card" aria-label="IP lookup">
+        <form class="search-form" action="/" method="post">
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4.5 4.5"/></svg>
+            <input class="search-input" id="ip" name="ip" type="text" placeholder="Enter an IP address or domain..." autocomplete="off" spellcheck="false" required aria-label="IP address or domain">
+          </div>
+          <button class="search-button" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Find details
+          </button>
+        </form>
+      </section>
+      <div class="quick-examples">
+        <span>Try an example</span>
+        <button class="example" type="button" data-value="8.8.8.8">8.8.8.8</button>
+        <button class="example" type="button" data-value="1.1.1.1">1.1.1.1</button>
+        <button class="example" type="button" data-value="example.com">example.com</button>
+      </div>
+
+      {% if result and result.get('error') %}
+      <div class="error" role="alert">{{ result.get('error') }}</div>
+      {% endif %}
+
+      {% if result and not result.get('error') %}
+      <section class="results" aria-labelledby="result-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Lookup result</p>
+            <h2 id="result-title">Address overview</h2>
+          </div>
+          {% set domain_status = result.get('Status') or '' %}
+          <span class="live-label {% if domain_status == 'Domain is UP' %}status-up{% elif 'DOWN' in domain_status %}status-down{% else %}status-other{% endif %}" role="status">
+            <span class="status-indicator" aria-hidden="true"></span>{{ domain_status or 'Status unavailable' }}
+          </span>
+        </div>
+        <div class="overview">
+          <div class="ip-summary">
+            <div>
+              <div class="label">Resolved IP address</div>
+              <div class="ip-value">{{ result.get('Resolved IP') or '—' }}</div>
+            </div>
+            <div class="summary-bottom">
+              <span class="type-badge">{{ result.get('IP Type') or 'IP address' }}</span>
+              <span class="location-caption">{{ result.get('City') or 'Unknown location' }}{% if result.get('City') and result.get('Country') %}, {% endif %}{{ result.get('Country') or '' }}</span>
+            </div>
+          </div>
+          <div class="map-panel" aria-label="Stylized location map">
+            <span class="map-coast" aria-hidden="true"></span>
+            <span class="map-pin" aria-hidden="true"></span>
+            <span class="map-caption">NETWORK LOCATION</span>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          {% for label, icon, value in [
+            ('Reverse DNS', 'M12 3v18m9-9H3m15.5-6.5a9 9 0 1 1-13 13 9 9 0 0 1 13-13Z', result.get('Reverse DNS Hostname')),
+            ('Internet provider', 'M3 21h18M5 21V7l8-4v18m6 0V11l-6-4M9 9v.01M9 12v.01M9 15v.01M9 18v.01M15 14v.01M15 17v.01', result.get('ISP')),
+            ('Organization', 'M4 21h16M6 21V5l6-2v18m6 0V9l-6-2M9 7v.01M9 10v.01M9 13v.01M9 16v.01', result.get('Organization')),
+            ('Postal code', 'M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z M12 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', result.get('Zip Code')),
+            ('Timezone', 'M12 8v4l2.5 1.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z', result.get('Timezone'))
+          ] %}
+          <article class="detail-card">
+            <div class="label">
+              <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ icon }}"/></svg>
+              {{ label }}
+            </div>
+            <div class="detail-value{% if not value %} empty-value{% endif %}">{{ value or 'Not available' }}</div>
+          </article>
+          {% endfor %}
+        </div>
+        <p class="privacy-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>
+          Location details are estimates based on publicly available IP data.
+        </p>
+      </section>
+      {% endif %}
+    </main>
+    <footer>Trace IP Lookup <span aria-hidden="true">·</span> Simple, useful internet insights</footer>
+  </div>
+  <script>
+    document.querySelectorAll(".example").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById("ip");
+        input.value = button.dataset.value;
+        input.focus();
+      });
+    });
+  </script>
+</body>
+</html>
