@@ -14,8 +14,4 @@ A Flask-based web application that resolves IP addresses and domain names to pro
 - **Networking & HTTP:** `socket`, `ipaddress`, `requests`, `ip-api.com`
 - **Frontend:** HTML (`templates/index.html`) and CSS
 
-## Run Locally
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/abijith-joseph/IP-Storyline.git](https://github.com/abijith-joseph/IP-Storyline.git)
-   cd IP-Storyline
+
